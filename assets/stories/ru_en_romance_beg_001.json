@@ -1,0 +1,58 @@
+{
+    "id": "ru_en_romance_beg_001",
+    "title": "Anna and Dmitry",
+    "content": [
+      {
+        "target": "Глава 1: Встреча в красивом парке",
+        "known": "Chapter 1: Meeting in a Beautiful Park"
+      },
+      {
+        "target": "Анна стоит в большом парке в центре Москвы. Сегодня прекрасная погода, и она читает интересную книгу на красной скамейке.",
+        "known": "Anna stands in a large park in the center of Moscow. Today the weather is beautiful, and she is reading an interesting book on a red bench."
+      },
+      {
+        "target": "Дмитрий идёт по маленькой дорожке с синим рюкзаком. В его рюкзаке лежат новые книги из известного книжного магазина. Он видит молодую женщину на скамейке и думает: 'Какая красивая девушка!'",
+        "known": "Dmitry walks along a small path with a blue backpack. In his backpack lie new books from a famous bookstore. He sees a young woman on the bench and thinks: 'What a beautiful girl!'"
+      },
+      {
+        "target": "Ветер сильный, и страницы в Анниной книге быстро переворачиваются. Одна страница вылетает из её рук.",
+        "known": "The wind is strong, and the pages in Anna's book turn quickly. One page flies out of her hands."
+      },
+      {
+        "target": "'Извините!' - говорит Дмитрий, поднимая белую страницу. 'Это ваша страница?'",
+        "known": "'Excuse me!' says Dmitry, picking up the white page. 'Is this your page?'"
+      },
+      {
+        "target": "'Да, спасибо большое!' - отвечает Анна с тёплой улыбкой. 'Вы очень добры.'",
+        "known": "'Yes, thank you so much!' Anna replies with a warm smile. 'You are very kind.'"
+      },
+      {
+        "target": "Глава 2: Первый разговор",
+        "known": "Chapter 2: First Conversation"
+      },
+      {
+        "target": "'Что вы читаете?' - спрашивает Дмитрий, садясь рядом с ней на скамейку.",
+        "known": "'What are you reading?' asks Dmitry, sitting next to her on the bench."
+      },
+      {
+        "target": "'Это роман о любви, отвечает Анна. А в вашем рюкзаке что лежит?'",
+        "known": "'It's a romance novel,' Anna replies. 'And what's in your backpack?'"
+      },
+      {
+        "target": "'В моём рюкзаке лежат учебники по истории. Я работаю в большом университете на главной площади города.'",
+        "known": "'In my backpack lie history textbooks. I work at a large university on the main square of the city.'"
+      },
+      {
+        "target": "Глава 3: Прогулка по городу",
+        "known": "Chapter 3: A Walk Around the City"
+      },
+      {
+        "target": "На следующий день Дмитрий приходит в Аннино кафе. На красной двери висит маленький знак: 'Лучший кофе в городе'.",
+        "known": "The next day Dmitry comes to Anna's café. On the red door hangs a small sign: 'Best coffee in the city.'"
+      },
+      {
+        "target": "'Добро пожаловать в наше уютное кафе!' - говорит Анна в белой блузке. Она стоит за деревянным столом с чашками и блюдцами.",
+        "known": "'Welcome to our cozy café!' says Anna in a white blouse. She stands behind a wooden table with cups and saucers."
+      }
+    ]
+  }
