@@ -13,7 +13,7 @@ const LANGUAGES = [
 
 // Dynamically generate all 42 language pair combinations.
 // This is much more maintainable than a static list.
-export const LANGUAGE_PAIRS: LanguagePair[] = LANGUAGES.flatMap(target =>
+export const LANGUAGE_PAIRS = LANGUAGES.flatMap(target =>
   LANGUAGES.map(source => ({
     id: `${source.id}-${target.id}`,
     label: `${source.name} → ${target.name}`,

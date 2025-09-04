@@ -1,12 +1,16 @@
 // app/story/[id].tsx
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { STORY_DATABASE } from '@/constants/stories';
 import { useTheme } from '@/context/ThemeContext';
+import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// --- Dynamic Content Loader ---
-// In a real app, this would be an API call: `fetch('https://api.myapp.com/stories/${id}')`
-// For now, it maps IDs to local JSON files.
+const STORAGE_KEYS = {
+  COMPLETED_STORIES: '@taika_completed_stories',
+};
+
+// (No changes to the dynamic content loader and helper function)
 const getStoryContent = (id: string) => {
   switch (id) {
     case 'ru_en_romance_beg_001':
@@ -15,34 +19,77 @@ const getStoryContent = (id: string) => {
       return require('@/assets/stories/ru_en_scifi_beg_002.json');
     case 'fr_en_mystery_beg_001':
       return require('@/assets/stories/fr_en_mystery_beg_001.json');
-    // ... you would add a case for every story ID
     default:
       return null;
   }
 };
 
-// This helper function can stay, as it's efficient for finding metadata.
 function findStoryById(id: string | undefined) {
-    // ... (no changes needed to this function)
     if (!id) return undefined;
     for (const lang of Object.values(STORY_DATABASE)) {
         for (const difficulty of Object.values(lang)) {
-            const story = difficulty.find((s: { id: string }) => s.id === id);
+            const story = (difficulty as any[]).find((s: { id: string }) => s.id === id);
             if (story) return story;
         }
     }
     return undefined;
 }
 
+
 export default function StoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { theme } = useTheme();
   const storyInfo = findStoryById(id);
-  
-  // Use our new loader function
   const storyContent = id ? getStoryContent(id) : null;
+  
+  // --- NEW: State for navigation and completion ---
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
 
-  // --- Dynamic styles (no changes needed) ---
+  useEffect(() => {
+    const checkIfCompleted = async () => {
+      if (!id) return;
+      const completedStoriesStr = await AsyncStorage.getItem(STORAGE_KEYS.COMPLETED_STORIES);
+      const completedStories = completedStoriesStr ? JSON.parse(completedStoriesStr) : [];
+      if (completedStories.includes(id)) {
+        setIsCompleted(true);
+      }
+    };
+    checkIfCompleted();
+  }, [id]);
+  
+  // --- NEW: Function to mark story as complete ---
+  const handleMarkComplete = async () => {
+    if (!id) return;
+    try {
+      const completedStoriesStr = await AsyncStorage.getItem(STORAGE_KEYS.COMPLETED_STORIES);
+      let completedStories = completedStoriesStr ? JSON.parse(completedStoriesStr) : [];
+      if (!completedStories.includes(id)) {
+        completedStories.push(id);
+        await AsyncStorage.setItem(STORAGE_KEYS.COMPLETED_STORIES, JSON.stringify(completedStories));
+      }
+      // Navigate back to the library screen
+      router.back();
+    } catch (error) {
+      console.error("Failed to save completion status:", error);
+    }
+  };
+
+  const handleNext = () => {
+    if (storyContent && currentIndex < storyContent.content.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      handleMarkComplete();
+    }
+  };
+  
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+
   const containerStyle = { flex: 1, backgroundColor: theme === 'dark' ? '#000000' : '#FFFFFF' };
   const textStyle = { color: theme === 'dark' ? '#FFFFFF' : '#000000' };
   const descriptionStyle = { color: theme === 'dark' ? '#8E8E93' : '#6E6E73' };
@@ -57,38 +104,104 @@ export default function StoryScreen() {
     );
   }
 
+  const currentPair = storyContent.content[currentIndex];
+  const isLastPage = currentIndex === storyContent.content.length - 1;
+
   return (
     <SafeAreaView style={containerStyle}>
       <Stack.Screen options={{ title: storyInfo.title, headerBackTitle: 'Library' }} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={[styles.title, textStyle]}>{storyInfo.title}</Text>
-          <Text style={[styles.description, descriptionStyle]}>{storyInfo.description}</Text>
+      <View style={styles.contentContainer}>
+        {isCompleted && (
+          <View style={styles.completedBanner}>
+            <Text style={styles.completedBannerText}>✓ You've completed this story before</Text>
+          </View>
+        )}
+        <View style={styles.paragraphPair} >
+            <Text style={[styles.targetLanguageText, textStyle]}>{currentPair.target}</Text>
+            <Text style={[styles.knownLanguageText, knownTextStyle]}>{currentPair.known}</Text>
         </View>
-
-        <View style={styles.storyContent}>
-          {storyContent.content.map((pair: { target: string; known: string }, index: number) => (
-            <View key={index} style={[styles.paragraphPair, pairStyle]}>
-              <Text style={[styles.targetLanguageText, textStyle]}>{pair.target}</Text>
-              <Text style={[styles.knownLanguageText, knownTextStyle]}>{pair.known}</Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+      </View>
+      
+      {/* --- NEW: Navigation Controls --- */}
+      <View style={styles.navigationContainer}>
+        <TouchableOpacity 
+          style={[styles.navButton, currentIndex === 0 && styles.disabledButton]} 
+          onPress={handlePrev} 
+          disabled={currentIndex === 0}
+        >
+          <Text style={[styles.navButtonText, textStyle]}>Previous</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={[styles.navButton, styles.nextButton]} onPress={handleNext}>
+          <Text style={styles.nextButtonText}>
+            {isLastPage ? 'Mark Complete' : 'Next'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
-// --- Styles (no changes needed) ---
 const styles = StyleSheet.create({
-  scrollContent: { padding: 20, paddingBottom: 50 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { fontSize: 18 },
-  header: { marginBottom: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#2C2C2E' },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 8 },
-  description: { fontSize: 16, lineHeight: 22 },
-  storyContent: { marginTop: 16 },
-  paragraphPair: { marginBottom: 24, borderRadius: 12, padding: 16 },
-  targetLanguageText: { fontSize: 18, lineHeight: 26, marginBottom: 12 },
-  knownLanguageText: { fontSize: 15, lineHeight: 22, fontStyle: 'italic' },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  paragraphPair: {
+    padding: 16,
+  },
+  targetLanguageText: {
+    fontSize: 22,
+    lineHeight: 30,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  knownLanguageText: {
+    fontSize: 18,
+    lineHeight: 26,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2E',
+  },
+  navButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: '#1C1C1E',
+  },
+  nextButton: {
+    backgroundColor: '#007AFF',
+  },
+  disabledButton: {
+    backgroundColor: '#111111',
+  },
+  navButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  nextButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  completedBanner: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(52, 199, 89, 0.2)',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  completedBannerText: {
+    color: '#34C759',
+    fontWeight: '600',
+  },
 });

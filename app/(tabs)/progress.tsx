@@ -1,4 +1,4 @@
-// app/(tabs)/progress.tsx - Optimized with useFocusEffect
+// app/(tabs)/progress.tsx - Updated with Light/Dark Mode support
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -6,9 +6,11 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
+import { useTheme } from '@/context/ThemeContext'; // 1. Import the theme hook
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -18,41 +20,45 @@ const STORAGE_KEYS = {
 };
 
 export default function ProgressScreen() {
+  const { theme } = useTheme(); // 2. Get the current theme
   const [totalPoints, setTotalPoints] = useState(0);
   const [completedStories, setCompletedStories] = useState<string[]>([]);
   const [totalReadingTime, setTotalReadingTime] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // This hook runs every time the user navigates to this screen
   useFocusEffect(
     useCallback(() => {
       const loadProgressData = async () => {
+        setIsLoading(true);
         try {
-          // Load total points
           const points = await AsyncStorage.getItem(STORAGE_KEYS.TOTAL_POINTS);
           setTotalPoints(points ? parseInt(points) : 0);
 
-          // Load completed stories
           const stories = await AsyncStorage.getItem(STORAGE_KEYS.COMPLETED_STORIES);
           setCompletedStories(stories ? JSON.parse(stories) : []);
 
-          // Load reading time
           const readingTime = await AsyncStorage.getItem(STORAGE_KEYS.READING_TIME);
           setTotalReadingTime(readingTime ? parseInt(readingTime) : 0);
-
-          setIsLoading(false);
         } catch (error) {
           console.log('Error loading progress data:', error);
+        } finally {
           setIsLoading(false);
         }
       };
 
       loadProgressData();
-    }, []) // Empty dependency array means this doesn't re-run unnecessarily
+    }, [])
   );
 
+  // 3. Create dynamic styles that change based on the theme
+  const containerStyle = { flex: 1, backgroundColor: theme === 'dark' ? '#000000' : '#F2F2F7' };
+  const textStyle = { color: theme === 'dark' ? '#FFFFFF' : '#000000' };
+  const subtitleStyle = { color: theme === 'dark' ? '#8E8E93' : '#6E6E73' };
+  const cardStyle = { backgroundColor: theme === 'dark' ? '#1C1C1E' : '#FFFFFF' };
+  const progressTrackStyle = { backgroundColor: theme === 'dark' ? '#333333' : '#E5E5EA' };
+
   // Calculate stats
-  const totalStoriesAvailable = 10; // This can be calculated dynamically later
+  const totalStoriesAvailable = 10;
   const progressPercentage = completedStories.length > 0 
     ? (completedStories.length / totalStoriesAvailable) * 100 
     : 0;
@@ -60,54 +66,55 @@ export default function ProgressScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={containerStyle}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading your progress...</Text>
+          <ActivityIndicator size="large" color={theme === 'dark' ? '#FFFFFF' : '#000000'} />
+          <Text style={[styles.loadingText, subtitleStyle]}>Loading your progress...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={containerStyle}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Your Progress</Text>
-        <Text style={styles.subtitle}>Track your language learning journey</Text>
+        <Text style={[styles.title, textStyle]}>Your Progress</Text>
+        <Text style={[styles.subtitle, subtitleStyle]}>Track your language learning journey</Text>
 
         {/* Points Display */}
         <View style={styles.pointsContainer}>
-          <Text style={styles.sectionTitle}>Points Earned</Text>
-          <View style={styles.pointsCard}>
+          <Text style={[styles.sectionTitle, textStyle]}>Points Earned</Text>
+          <View style={[styles.pointsCard, cardStyle]}>
             <Text style={styles.pointsNumber}>{totalPoints}</Text>
-            <Text style={styles.pointsLabel}>Total Points</Text>
-            <Text style={styles.pointsSubtext}>Keep reading to earn more!</Text>
+            <Text style={[styles.pointsLabel, textStyle]}>Total Points</Text>
+            <Text style={[styles.pointsSubtext, subtitleStyle]}>Keep reading to earn more!</Text>
           </View>
         </View>
 
         {/* Reading Statistics */}
         <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>Reading Statistics</Text>
-          <View style={styles.statRow}>
+          <Text style={[styles.sectionTitle, textStyle]}>Reading Statistics</Text>
+          <View style={[styles.statRow, cardStyle]}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{completedStories.length}</Text>
-              <Text style={styles.statLabel}>Stories Read</Text>
+              <Text style={[styles.statNumber, textStyle]}>{completedStories.length}</Text>
+              <Text style={[styles.statLabel, subtitleStyle]}>Stories Read</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{totalReadingTime}</Text>
-              <Text style={styles.statLabel}>Minutes Read</Text>
+              <Text style={[styles.statNumber, textStyle]}>{totalReadingTime}</Text>
+              <Text style={[styles.statLabel, subtitleStyle]}>Minutes Read</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{currentStreak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
+              <Text style={[styles.statNumber, textStyle]}>{currentStreak}</Text>
+              <Text style={[styles.statLabel, subtitleStyle]}>Day Streak</Text>
             </View>
           </View>
         </View>
 
         {/* Story Progress Bar */}
         <View style={styles.progressContainer}>
-          <Text style={styles.sectionTitle}>Story Completion</Text>
-          <View style={styles.progressBarContainer}>
-            <View style={styles.progressBar}>
+          <Text style={[styles.sectionTitle, textStyle]}>Story Completion</Text>
+          <View style={[styles.progressBarCard, cardStyle]}>
+            <View style={[styles.progressBar, progressTrackStyle]}>
               <View 
                 style={[
                   styles.progressFill, 
@@ -115,7 +122,7 @@ export default function ProgressScreen() {
                 ]} 
               />
             </View>
-            <Text style={styles.progressText}>
+            <Text style={[styles.progressText, subtitleStyle]}>
               {completedStories.length} of {totalStoriesAvailable} free stories
             </Text>
           </View>
@@ -125,18 +132,15 @@ export default function ProgressScreen() {
   );
 }
 
+// 4. Update StyleSheet to be color-agnostic
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
-    color: '#CCCCCC',
+    marginTop: 10,
     fontSize: 16,
   },
   scrollContent: {
@@ -146,27 +150,23 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#CCCCCC',
     textAlign: 'center',
     marginBottom: 40,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: 16,
   },
   pointsContainer: {
     marginBottom: 32,
   },
   pointsCard: {
-    backgroundColor: '#111111',
     padding: 24,
     borderRadius: 12,
     alignItems: 'center',
@@ -181,13 +181,11 @@ const styles = StyleSheet.create({
   },
   pointsLabel: {
     fontSize: 16,
-    color: '#FFFFFF',
     fontWeight: '600',
     marginBottom: 4,
   },
   pointsSubtext: {
     fontSize: 14,
-    color: '#CCCCCC',
   },
   statsContainer: {
     marginBottom: 32,
@@ -195,7 +193,6 @@ const styles = StyleSheet.create({
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#111111',
     padding: 20,
     borderRadius: 12,
   },
@@ -205,25 +202,21 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#007AFF',
   },
   statLabel: {
     fontSize: 12,
-    color: '#CCCCCC',
     marginTop: 4,
     textAlign: 'center',
   },
   progressContainer: {
     marginBottom: 32,
   },
-  progressBarContainer: {
-    backgroundColor: '#111111',
+  progressBarCard: {
     padding: 16,
     borderRadius: 12,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#333333',
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 12,
@@ -234,7 +227,6 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 14,
-    color: '#CCCCCC',
     textAlign: 'center',
   },
 });
