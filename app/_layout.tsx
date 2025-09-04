@@ -1,46 +1,59 @@
-// app/_layout.tsx
-import { ThemeProvider as NavigationThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
+import { auth } from '@/firebaseconfig'; // Import your Firebase auth instance
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-// Import our new ThemeProvider
-import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { router, Stack } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 
 export default function RootLayout() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  if (!loaded) {
-    return null;
-  }
+  useEffect(() => {
+    if (!loaded) return;
 
-  // We need a component that can access the theme context
-  // to apply the correct theme from @react-navigation
-  function AppContent() {
-    const { theme } = useTheme();
-    // The ThemeProvider from @react-navigation is different from ours.
-    // We'll keep it for now as it provides default navigation colors.
-    const navigationTheme = theme === 'dark' ? DarkTheme : DefaultTheme;
+    // onAuthStateChanged returns an unsubscriber
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
 
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [loaded]);
+
+  useEffect(() => {
+    if (loading) return; // Wait until the auth state is confirmed
+
+    // If the user is logged in, redirect them to the main app.
+    // Otherwise, redirect them to the auth screen.
+    if (user) {
+      router.replace('/(tabs)');
+    } else {
+      router.replace('/auth');
+    }
+  }, [user, loading]);
+
+  // Show a loading indicator while we check the auth state
+  if (loading || !loaded) {
     return (
-      <NavigationThemeProvider value={navigationTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="story/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
-      </NavigationThemeProvider>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
     );
   }
 
-  // The main layout now wraps everything in OUR ThemeProvider
+  // This part of the layout will be active once the redirect happens
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="auth" options={{ headerShown: false }} />
+      <Stack.Screen name="story/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="+not-found" />
+    </Stack>
   );
 }

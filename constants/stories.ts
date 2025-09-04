@@ -1,65 +1,70 @@
 // constants/stories.ts
 
-// constants/stories.ts
+// A helper array of the languages you want to support.
+const LANGUAGES = [
+  { id: 'en', name: 'English', flag: '🇺🇸' },
+  { id: 'fr', name: 'French', flag: '🇫🇷' },
+  { id: 'de', name: 'German', flag: '🇩🇪' },
+  { id: 'es', name: 'Spanish', flag: '🇪🇸' },
+  { id: 'it', name: 'Italian', flag: '🇮🇹' },
+  { id: 'zh', name: 'Chinese', flag: '🇨🇳' },
+  { id: 'ru', name: 'Russian', flag: '🇷🇺' },
+];
 
-// constants/stories.ts
+// Dynamically generate all 42 language pair combinations.
+// This is much more maintainable than a static list.
+export const LANGUAGE_PAIRS: LanguagePair[] = LANGUAGES.flatMap(target =>
+  LANGUAGES.map(source => ({
+    id: `${source.id}-${target.id}`,
+    label: `${source.name} → ${target.name}`,
+    flag: `${source.flag}→${target.flag}`,
+    source: source.name,
+    target: target.name,
+  }))
+).filter(p => p.id.split('-')[0] !== p.id.split('-')[1]); // Filter out pairs like 'en-en'
 
+// The new STORY_DATABASE structure is simpler and ready for more content.
+// We've removed the 'genre' layer and added 'advanced' difficulty.
 export const STORY_DATABASE = {
-  'russian-english': {
-    romance: {
-      beginner: [
-        {
-          id: 'ru_en_romance_beg_001',
-          title: 'Anna and Dmitry',
-          difficulty: 'beginner',
-          points: 15,
-          paragraphs: 13,
-          description: 'A classic love story set in the beautiful city of Moscow.',
-        },
-      ],
-      intermediate: [ // New Intermediate Level
-        {
-          id: 'ru_en_romance_int_001',
-          title: 'The Long Wait',
-          difficulty: 'intermediate',
-          points: 25,
-          paragraphs: 20,
-          description: 'A story of two friends separated by distance and time.',
-          content: [],
-        }
-      ]
-    },
-    'sci-fi': {
-      beginner: [
-        {
-          id: 'ru_en_scifi_beg_001',
-          title: 'The Blue Planet Discovery',
-          difficulty: 'beginner',
-          points: 10,
-          paragraphs: 3,
-          description: 'A space adventure about discovering a mysterious blue planet',
-          content: []
-        },
-        {
-          id: 'ru_en_scifi_beg_002',
-          title: 'The Friendly Robot',
-          difficulty: 'beginner',
-          points: 10,
-          paragraphs: 3,
-          description: 'A heartwarming story about helping a lost robot find home',
-          content: []
-        },
-      ]
-    }
+  'ru-en': { // Russian to English
+    beginner: [
+      {
+        id: 'ru_en_romance_beg_001',
+        title: 'Anna and Dmitry',
+        difficulty: 'beginner',
+        points: 15,
+        description: 'A classic love story set in the beautiful city of Moscow.',
+      },
+      {
+        id: 'ru_en_scifi_beg_002',
+        title: 'The Friendly Robot',
+        difficulty: 'beginner',
+        points: 10,
+        description: 'A heartwarming story about helping a lost robot find home.',
+      },
+      // ... Add 18 more beginner stories for Russian-English
+    ],
+    intermediate: [
+        // ... Add 20 intermediate stories for Russian-English
+    ],
+    advanced: [
+        // ... Add 20 advanced stories for Russian-English
+    ],
   },
-  'chinese-english': {
-    // ...
-  }
+  'fr-en': { // French to English
+    beginner: [
+        {
+            id: 'fr_en_mystery_beg_001',
+            title: 'The Secret of the Old Library',
+            difficulty: 'beginner',
+            points: 15,
+            description: 'Two friends uncover a hidden message in a mysterious book.',
+        },
+        // ... Add 19 more beginner stories for French-English
+    ],
+    intermediate: [],
+    advanced: [],
+  },
+  // ... You would add entries for all other 40 language pairs here.
+  // Example: 'de-en', 'es-en', 'zh-en', 'it-en', 'en-ru', etc.
 } as const;
-
-// ... LANGUAGE_PAIRS remains the same
-  
-export const LANGUAGE_PAIRS = [
-  { id: 'russian-english', label: 'Russian → English', flag: '🇷🇺→🇺🇸', native: 'Russian', target: 'English' },
-  { id: 'chinese-english', label: 'Chinese → English', flag: '🇨🇳→🇺🇸', native: 'Chinese', target: 'English' }
-] as const;

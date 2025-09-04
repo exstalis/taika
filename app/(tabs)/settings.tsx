@@ -1,27 +1,39 @@
 // app/(tabs)/settings.tsx
+// app/(tabs)/settings.tsx
+import { useTheme } from '@/context/ThemeContext'; // Import our theme hook
+import { auth } from '@/firebaseconfig'; // 1. Import Firebase auth
+import { signOut } from 'firebase/auth'; // 1. Import the signOut function
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  TouchableOpacity,
-  Switch,
   Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useTheme } from '@/context/ThemeContext'; // Import our theme hook
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme(); // Use the global theme
 
   // Local state for settings that aren't theme-related
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [autoPlayEnabled, setAutoPlayEnabled] = useState(false);
+
+  // 2. Create the handleSignOut function
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      // Our listener in _layout.tsx will handle the redirect automatically!
+    } catch (error) {
+      console.log('Error signing out:', error);
+      Alert.alert('Error', 'Could not sign out. Please try again.');
+    }
+  };
 
   // --- Helper Functions for Placeholders ---
   const handleLanguageSettings = () => Alert.alert('Language Settings', 'This feature is coming soon!');
-  const handleDifficultySettings = () => Alert.alert('Difficulty Settings', 'This feature is coming soon!');
   const handleAbout = () => Alert.alert('About Taika', 'Taika - Bilingual Story Learning\nVersion 1.0.0');
 
   // --- Dynamic Styles based on the theme ---
@@ -37,33 +49,11 @@ export default function SettingsScreen() {
         <Text style={[styles.title, textStyle]}>Settings</Text>
         <Text style={[styles.subtitle, subtitleStyle]}>Customize your learning experience</Text>
 
-        {/* Learning Preferences */}
-        <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionTitle, textStyle]}>Learning Preferences</Text>
-          <TouchableOpacity style={[styles.settingItem, itemStyle]} onPress={handleLanguageSettings}>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingTitle, textStyle]}>Language Pairs</Text>
-              <Text style={[styles.settingSubtitle, subtitleStyle]}>Manage your preferred language combinations</Text>
-            </View>
-            <Text style={[styles.settingArrow, arrowStyle]}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.settingItem, itemStyle]} onPress={handleDifficultySettings}>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingTitle, textStyle]}>Story Difficulty</Text>
-              <Text style={[styles.settingSubtitle, subtitleStyle]}>Set your preferred reading level</Text>
-            </View>
-            <Text style={[styles.settingArrow, arrowStyle]}>›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* App Preferences */}
+        {/* App Preferences Section */}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionTitle, textStyle]}>App Preferences</Text>
           <View style={[styles.settingItem, itemStyle]}>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingTitle, textStyle]}>Dark Mode</Text>
-              <Text style={[styles.settingSubtitle, subtitleStyle]}>Use dark theme for reading</Text>
-            </View>
+            <Text style={[styles.settingTitle, textStyle]}>Dark Mode</Text>
             <Switch
               value={theme === 'dark'}
               onValueChange={toggleTheme}
@@ -72,10 +62,7 @@ export default function SettingsScreen() {
             />
           </View>
           <View style={[styles.settingItem, itemStyle]}>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingTitle, textStyle]}>Notifications</Text>
-              <Text style={[styles.settingSubtitle, subtitleStyle]}>Daily reading reminders</Text>
-            </View>
+            <Text style={[styles.settingTitle, textStyle]}>Notifications</Text>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
@@ -85,20 +72,24 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Account Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={[styles.sectionTitle, textStyle]}>Account</Text>
+          {/* 3. Add the Sign Out button to the UI */}
+          <TouchableOpacity
+            style={[styles.settingItem, itemStyle, styles.signOutButton]}
+            onPress={handleSignOut}>
+            <Text style={[styles.settingTitle, styles.signOutText]}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Support & Info */}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionTitle, textStyle]}>Support & Information</Text>
           <TouchableOpacity style={[styles.settingItem, itemStyle]} onPress={handleAbout}>
-            <View style={styles.settingTextContainer}>
-              <Text style={[styles.settingTitle, textStyle]}>About Taika</Text>
-              <Text style={[styles.settingSubtitle, subtitleStyle]}>Version and app information</Text>
-            </View>
+            <Text style={[styles.settingTitle, textStyle]}>About Taika</Text>
             <Text style={[styles.settingArrow, arrowStyle]}>›</Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Taika v1.0.0 MVP</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -132,32 +123,24 @@ const styles = StyleSheet.create({
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
   },
-  settingTextContainer: {
-    flex: 1,
-  },
   settingTitle: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 4,
-  },
-  settingSubtitle: {
-    fontSize: 14,
   },
   settingArrow: {
     fontSize: 20,
     fontWeight: '300',
   },
-  versionContainer: {
-    alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 32,
+  signOutButton: {
+    justifyContent: 'center',
   },
-  versionText: {
-    fontSize: 14,
-    color: '#8E8E93',
+  signOutText: {
+    color: '#FF3B30', // A red color for sign out actions
+    textAlign: 'center',
   },
 });

@@ -1,0 +1,18 @@
+{
+    "id": "fr_en_mystery_beg_001",
+    "title": "The Secret of the Old Library",
+    "content": [
+      {
+        "target": "Chapitre 1 : Le livre mystérieux",
+        "known": "Chapter 1: The Mysterious Book"
+      },
+      {
+        "target": "Léo et Mia aimaient explorer la vieille bibliothèque de la ville. Un jour de pluie, ils ont trouvé un livre en cuir caché derrière une étagère.",
+        "known": "Leo and Mia loved exploring the old city library. One rainy day, they found a leather-bound book hidden behind a shelf."
+      },
+      {
+        "target": "Le livre n'avait pas de titre. Quand Léo l'a ouvert, une petite carte est tombée. C'était une carte de la bibliothèque avec un 'X' rouge dans un coin.",
+        "known": "The book had no title. When Leo opened it, a small map fell out. It was a map of the library with a red 'X' in one corner."
+      }
+    ]
+}
