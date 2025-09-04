@@ -1,5 +1,9 @@
 // constants/stories.ts
 
+// constants/stories.ts
+
+// constants/stories.ts
+
 export const STORY_DATABASE = {
   'russian-english': {
     romance: {
@@ -9,19 +13,51 @@ export const STORY_DATABASE = {
           title: 'Anna and Dmitry',
           difficulty: 'beginner',
           points: 15,
-          paragraphs: 13, // Updated paragraph count
+          paragraphs: 13,
           description: 'A classic love story set in the beautiful city of Moscow.',
         },
       ],
+      intermediate: [ // New Intermediate Level
+        {
+          id: 'ru_en_romance_int_001',
+          title: 'The Long Wait',
+          difficulty: 'intermediate',
+          points: 25,
+          paragraphs: 20,
+          description: 'A story of two friends separated by distance and time.',
+          content: [],
+        }
+      ]
     },
     'sci-fi': {
-      // ... other stories
+      beginner: [
+        {
+          id: 'ru_en_scifi_beg_001',
+          title: 'The Blue Planet Discovery',
+          difficulty: 'beginner',
+          points: 10,
+          paragraphs: 3,
+          description: 'A space adventure about discovering a mysterious blue planet',
+          content: []
+        },
+        {
+          id: 'ru_en_scifi_beg_002',
+          title: 'The Friendly Robot',
+          difficulty: 'beginner',
+          points: 10,
+          paragraphs: 3,
+          description: 'A heartwarming story about helping a lost robot find home',
+          content: []
+        },
+      ]
     }
   },
   'chinese-english': {
-    // ... other stories
+    // ...
   }
 } as const;
+
+// ... LANGUAGE_PAIRS remains the same
   
 export const LANGUAGE_PAIRS = [
   { id: 'russian-english', label: 'Russian → English', flag: '🇷🇺→🇺🇸', native: 'Russian', target: 'English' },

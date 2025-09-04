@@ -1,0 +1,30 @@
+{
+    "id": "ru_en_scifi_beg_002",
+    "title": "The Friendly Robot",
+    "content": [
+      {
+        "target": "Глава 1: Потерянный друг",
+        "known": "Chapter 1: A Lost Friend"
+      },
+      {
+        "target": "Маленький робот по имени Юнит-7 сидел один в большом, тёмном лесу. Его синий металлический корпус был холодным, а его красные глаза-лампочки грустно моргали.",
+        "known": "A small robot named Unit-7 sat alone in a big, dark forest. His blue metal body was cold, and his red light-bulb eyes blinked sadly."
+      },
+      {
+        "target": "Он потерял своего хозяина, мальчика по имени Лёша. Они играли в прятки, и Юнит-7 спрятался слишком хорошо.",
+        "known": "He had lost his owner, a boy named Alex. They were playing hide-and-seek, and Unit-7 hid too well."
+      },
+      {
+        "target": "Вдруг он услышал шаги. Из-за дерева вышла девочка с добрыми глазами и длинными волосами. 'Ты потерялся?' - спросила она.",
+        "known": "Suddenly, he heard footsteps. A girl with kind eyes and long hair came out from behind a tree. 'Are you lost?' she asked."
+      },
+      {
+        "target": "Юнит-7 кивнул. 'Я ищу Лёшу,' - сказал он своим электронным голосом.",
+        "known": "Unit-7 nodded. 'I am looking for Alex,' he said in his electronic voice."
+      },
+      {
+        "target": "'Не волнуйся,' - сказала девочка. 'Меня зовут Маша. Мы найдём его вместе.'",
+        "known": "'Don't worry,' said the girl. 'My name is Masha. We will find him together.'"
+      }
+    ]
+  }

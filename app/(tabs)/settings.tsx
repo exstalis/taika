@@ -1,4 +1,4 @@
-// app/(tabs)/settings.tsx - Settings Tab for Language Preferences
+// app/(tabs)/settings.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -10,157 +10,95 @@ import {
   Switch,
   Alert,
 } from 'react-native';
+import { useTheme } from '@/context/ThemeContext'; // Import our theme hook
 
 export default function SettingsScreen() {
+  const { theme, toggleTheme } = useTheme(); // Use the global theme
+
+  // Local state for settings that aren't theme-related
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(true);
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(false);
 
-  const handleLanguageSettings = () => {
-    Alert.alert(
-      'Language Settings',
-      'Language preference settings will be available in the next update!',
-      [{ text: 'OK', style: 'default' }]
-    );
-  };
+  // --- Helper Functions for Placeholders ---
+  const handleLanguageSettings = () => Alert.alert('Language Settings', 'This feature is coming soon!');
+  const handleDifficultySettings = () => Alert.alert('Difficulty Settings', 'This feature is coming soon!');
+  const handleAbout = () => Alert.alert('About Taika', 'Taika - Bilingual Story Learning\nVersion 1.0.0');
 
-  const handleDifficultySettings = () => {
-    Alert.alert(
-      'Difficulty Settings',
-      'Story difficulty preferences will be available in the next update!',
-      [{ text: 'OK', style: 'default' }]
-    );
-  };
-
-  const handleAbout = () => {
-    Alert.alert(
-      'About Taika',
-      'Taika - Bilingual Story Learning\nVersion 1.0.0\n\nLearn languages through engaging bilingual stories.',
-      [{ text: 'OK', style: 'default' }]
-    );
-  };
+  // --- Dynamic Styles based on the theme ---
+  const containerStyle = { flex: 1, backgroundColor: theme === 'dark' ? '#000000' : '#F2F2F7' };
+  const textStyle = { color: theme === 'dark' ? '#FFFFFF' : '#000000' };
+  const subtitleStyle = { color: theme === 'dark' ? '#8E8E93' : '#6E6E73' };
+  const itemStyle = { backgroundColor: theme === 'dark' ? '#1C1C1E' : '#FFFFFF' };
+  const arrowStyle = { color: theme === 'dark' ? '#666666' : '#C7C7CC' };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={containerStyle}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Settings</Text>
-        <Text style={styles.subtitle}>Customize your learning experience</Text>
+        <Text style={[styles.title, textStyle]}>Settings</Text>
+        <Text style={[styles.subtitle, subtitleStyle]}>Customize your learning experience</Text>
 
         {/* Learning Preferences */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Learning Preferences</Text>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={handleLanguageSettings}>
+          <Text style={[styles.sectionTitle, textStyle]}>Learning Preferences</Text>
+          <TouchableOpacity style={[styles.settingItem, itemStyle]} onPress={handleLanguageSettings}>
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingTitle}>Language Pairs</Text>
-              <Text style={styles.settingSubtitle}>Manage your preferred language combinations</Text>
+              <Text style={[styles.settingTitle, textStyle]}>Language Pairs</Text>
+              <Text style={[styles.settingSubtitle, subtitleStyle]}>Manage your preferred language combinations</Text>
             </View>
-            <Text style={styles.settingArrow}>›</Text>
+            <Text style={[styles.settingArrow, arrowStyle]}>›</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem} onPress={handleDifficultySettings}>
+          <TouchableOpacity style={[styles.settingItem, itemStyle]} onPress={handleDifficultySettings}>
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingTitle}>Story Difficulty</Text>
-              <Text style={styles.settingSubtitle}>Set your preferred reading level</Text>
+              <Text style={[styles.settingTitle, textStyle]}>Story Difficulty</Text>
+              <Text style={[styles.settingSubtitle, subtitleStyle]}>Set your preferred reading level</Text>
             </View>
-            <Text style={styles.settingArrow}>›</Text>
+            <Text style={[styles.settingArrow, arrowStyle]}>›</Text>
           </TouchableOpacity>
         </View>
 
         {/* App Preferences */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>App Preferences</Text>
-          
-          <View style={styles.settingItem}>
+          <Text style={[styles.sectionTitle, textStyle]}>App Preferences</Text>
+          <View style={[styles.settingItem, itemStyle]}>
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingTitle}>Dark Mode</Text>
-              <Text style={styles.settingSubtitle}>Use dark theme for reading</Text>
+              <Text style={[styles.settingTitle, textStyle]}>Dark Mode</Text>
+              <Text style={[styles.settingSubtitle, subtitleStyle]}>Use dark theme for reading</Text>
             </View>
             <Switch
-              value={darkModeEnabled}
-              onValueChange={setDarkModeEnabled}
-              trackColor={{ false: '#333333', true: '#007AFF' }}
-              thumbColor={darkModeEnabled ? '#FFFFFF' : '#CCCCCC'}
+              value={theme === 'dark'}
+              onValueChange={toggleTheme}
+              trackColor={{ false: '#767577', true: '#007AFF' }}
+              thumbColor={'#FFFFFF'}
             />
           </View>
-
-          <View style={styles.settingItem}>
+          <View style={[styles.settingItem, itemStyle]}>
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingTitle}>Notifications</Text>
-              <Text style={styles.settingSubtitle}>Daily reading reminders</Text>
+              <Text style={[styles.settingTitle, textStyle]}>Notifications</Text>
+              <Text style={[styles.settingSubtitle, subtitleStyle]}>Daily reading reminders</Text>
             </View>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: '#333333', true: '#007AFF' }}
-              thumbColor={notificationsEnabled ? '#FFFFFF' : '#CCCCCC'}
+              trackColor={{ false: '#767577', true: '#007AFF' }}
+              thumbColor={'#FFFFFF'}
             />
-          </View>
-
-          <View style={styles.settingItem}>
-            <View style={styles.settingTextContainer}>
-              <Text style={styles.settingTitle}>Auto-play Audio</Text>
-              <Text style={styles.settingSubtitle}>Automatically play story audio (Coming Soon)</Text>
-            </View>
-            <Switch
-              value={autoPlayEnabled}
-              onValueChange={setAutoPlayEnabled}
-              trackColor={{ false: '#333333', true: '#007AFF' }}
-              thumbColor={autoPlayEnabled ? '#FFFFFF' : '#CCCCCC'}
-              disabled={true}
-            />
-          </View>
-        </View>
-
-        {/* Reading Goals */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Reading Goals</Text>
-          
-          <View style={styles.goalCard}>
-            <Text style={styles.goalTitle}>Daily Goal</Text>
-            <Text style={styles.goalValue}>15 minutes</Text>
-            <Text style={styles.goalSubtitle}>Tap to change (Coming Soon)</Text>
-          </View>
-
-          <View style={styles.goalCard}>
-            <Text style={styles.goalTitle}>Weekly Goal</Text>
-            <Text style={styles.goalValue}>3 stories</Text>
-            <Text style={styles.goalSubtitle}>Tap to change (Coming Soon)</Text>
           </View>
         </View>
 
         {/* Support & Info */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Support & Information</Text>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={handleAbout}>
+          <Text style={[styles.sectionTitle, textStyle]}>Support & Information</Text>
+          <TouchableOpacity style={[styles.settingItem, itemStyle]} onPress={handleAbout}>
             <View style={styles.settingTextContainer}>
-              <Text style={styles.settingTitle}>About Taika</Text>
-              <Text style={styles.settingSubtitle}>Version and app information</Text>
+              <Text style={[styles.settingTitle, textStyle]}>About Taika</Text>
+              <Text style={[styles.settingSubtitle, subtitleStyle]}>Version and app information</Text>
             </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem}>
-            <View style={styles.settingTextContainer}>
-              <Text style={styles.settingTitle}>Help & Support</Text>
-              <Text style={styles.settingSubtitle}>Get help with using Taika</Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem}>
-            <View style={styles.settingTextContainer}>
-              <Text style={styles.settingTitle}>Privacy Policy</Text>
-              <Text style={styles.settingSubtitle}>How we protect your data</Text>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
+            <Text style={[styles.settingArrow, arrowStyle]}>›</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Taika v1.0.0 MVP</Text>
-          <Text style={styles.versionSubtext}>Built with ❤️ for language learners</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -168,24 +106,18 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
   scrollContent: {
     padding: 20,
-    paddingTop: 60, // Account for status bar
+    paddingTop: 60,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#CCCCCC',
     textAlign: 'center',
     marginBottom: 40,
   },
@@ -195,13 +127,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: 16,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111111',
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
@@ -212,40 +142,14 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#FFFFFF',
     marginBottom: 4,
   },
   settingSubtitle: {
     fontSize: 14,
-    color: '#CCCCCC',
   },
   settingArrow: {
     fontSize: 20,
-    color: '#666666',
     fontWeight: '300',
-  },
-  goalCard: {
-    backgroundColor: '#111111',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  goalTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  goalValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  goalSubtitle: {
-    fontSize: 12,
-    color: '#888888',
   },
   versionContainer: {
     alignItems: 'center',
@@ -254,11 +158,6 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 14,
-    color: '#666666',
-    marginBottom: 4,
-  },
-  versionSubtext: {
-    fontSize: 12,
-    color: '#888888',
+    color: '#8E8E93',
   },
 });

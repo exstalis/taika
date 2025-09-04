@@ -1,18 +1,12 @@
-// app/(tabs)/index.tsx
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORY_DATABASE, LANGUAGE_PAIRS } from '@/constants/stories';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useTheme } from '@/context/ThemeContext';
 
 type LanguagePairId = typeof LANGUAGE_PAIRS[number]['id'];
+type Difficulty = 'beginner' | 'intermediate';
 
 const STORAGE_KEYS = {
   COMPLETED_STORIES: '@taika_completed_stories',
@@ -20,26 +14,29 @@ const STORAGE_KEYS = {
 };
 
 export default function LibraryScreen() {
+  const { theme } = useTheme();
   const [selectedLanguagePair, setSelectedLanguagePair] = useState<LanguagePairId>('russian-english');
+  const [difficulty, setDifficulty] = useState<Difficulty>('beginner');
   const [completedStoryIds, setCompletedStoryIds] = useState<string[]>([]);
   const [bookmarkedStoryIds, setBookmarkedStoryIds] = useState<string[]>([]);
   const [filterType, setFilterType] = useState<'all' | 'completed' | 'new' | 'bookmarked'>('all');
 
-  useEffect(() => {
-    loadUserData();
-  }, [selectedLanguagePair]); // Reload data when language pair changes
+  useFocusEffect(
+    useCallback(() => {
+      const loadUserData = async () => {
+        try {
+          const completedStories = await AsyncStorage.getItem(STORAGE_KEYS.COMPLETED_STORIES);
+          if (completedStories) setCompletedStoryIds(JSON.parse(completedStories));
 
-  const loadUserData = async () => {
-    try {
-      const completedStories = await AsyncStorage.getItem(STORAGE_KEYS.COMPLETED_STORIES);
-      if (completedStories) setCompletedStoryIds(JSON.parse(completedStories));
-
-      const bookmarkedStories = await AsyncStorage.getItem(STORAGE_KEYS.BOOKMARKED_STORIES);
-      if (bookmarkedStories) setBookmarkedStoryIds(JSON.parse(bookmarkedStories));
-    } catch (error) {
-      console.log('Error loading user data:', error);
-    }
-  };
+          const bookmarkedStories = await AsyncStorage.getItem(STORAGE_KEYS.BOOKMARKED_STORIES);
+          if (bookmarkedStories) setBookmarkedStoryIds(JSON.parse(bookmarkedStories));
+        } catch (error) {
+          console.log('Error loading user data:', error);
+        }
+      };
+      loadUserData();
+    }, [])
+  );
 
   const toggleBookmark = async (storyId: string) => {
     try {
@@ -67,10 +64,10 @@ export default function LibraryScreen() {
     const languageData = STORY_DATABASE[selectedLanguagePair];
     if (!languageData) return [];
     const allGenres = Object.values(languageData);
-    const allStories = allGenres.flatMap((genre: any) => genre.beginner || []);
+    const allStories = allGenres.flatMap((genre: any) => genre[difficulty] || []);
     return allStories;
   };
-
+  
   const getFilteredStories = () => {
     const allStories = getStoriesForCurrentLanguage();
     switch (filterType) {
@@ -100,26 +97,34 @@ export default function LibraryScreen() {
   const filteredStories = getFilteredStories();
   const stats = getStoryStats();
 
+  const containerStyle = { flex: 1, backgroundColor: theme === 'dark' ? '#000000' : '#FFFFFF' };
+  const textStyle = { color: theme === 'dark' ? '#FFFFFF' : '#000000' };
+  const subtitleStyle = { color: theme === 'dark' ? '#8E8E93' : '#6E6E73' };
+  const itemStyle = { backgroundColor: theme === 'dark' ? '#1C1C1E' : '#FFFFFF' };
+  const selectedDifficultyStyle = { backgroundColor: '#007AFF' };
+  const difficultyTextStyle = { color: '#FFFFFF' };
+  const selectedLanguageButtonTextStyle = { color: theme === 'dark' ? '#007AFF' : '#007AFF' };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={containerStyle}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Story Library</Text>
-          <Text style={styles.subtitle}>Browse and select your favorite stories</Text>
+          <Text style={[styles.title, textStyle]}>Story Library</Text>
+          <Text style={[styles.subtitle, subtitleStyle]}>Browse and select your favorite stories</Text>
         </View>
 
         <View style={styles.languageSelectorContainer}>
-          <Text style={styles.sectionTitle}>Language Pair</Text>
+          <Text style={[styles.sectionTitle, textStyle]}>Language Pair</Text>
           <View style={styles.languageButtons}>
             {LANGUAGE_PAIRS.map((pair) => (
               <TouchableOpacity
                 key={pair.id}
-                style={[styles.languageButton, selectedLanguagePair === pair.id && styles.selectedLanguageButton]}
+                style={[styles.languageButton, itemStyle, selectedLanguagePair === pair.id && styles.selectedLanguageButton]}
                 onPress={() => setSelectedLanguagePair(pair.id)}
                 activeOpacity={0.8}
               >
                 <Text style={styles.languageFlag}>{pair.flag}</Text>
-                <Text style={[styles.languageButtonText, selectedLanguagePair === pair.id && styles.selectedLanguageButtonText]}>
+                <Text style={[styles.languageButtonText, textStyle, selectedLanguagePair === pair.id && selectedLanguageButtonTextStyle]}>
                   {pair.label}
                 </Text>
               </TouchableOpacity>
@@ -127,41 +132,62 @@ export default function LibraryScreen() {
           </View>
         </View>
 
+        <View style={styles.sectionContainer}>
+          <Text style={[styles.sectionTitle, textStyle]}>Difficulty</Text>
+          <View style={styles.difficultyButtons}>
+            <TouchableOpacity
+              style={[styles.difficultyButton, itemStyle, difficulty === 'beginner' && selectedDifficultyStyle]}
+              onPress={() => setDifficulty('beginner')}
+            >
+              <Text style={[styles.difficultyButtonText, difficultyTextStyle]}>
+                Beginner
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.difficultyButton, itemStyle, difficulty === 'intermediate' && selectedDifficultyStyle]}
+              onPress={() => setDifficulty('intermediate')}
+            >
+              <Text style={[styles.difficultyButtonText, difficultyTextStyle]}>
+                Intermediate
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
         <View style={styles.statsContainer}>
-          <Text style={styles.sectionTitle}>Your Progress</Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}><Text style={styles.statNumber}>{stats.total}</Text><Text style={styles.statLabel}>Total Stories</Text></View>
-            <View style={styles.statCard}><Text style={[styles.statNumber, styles.completedStat]}>{stats.completed}</Text><Text style={styles.statLabel}>Completed</Text></View>
-            <View style={styles.statCard}><Text style={[styles.statNumber, styles.remainingStat]}>{stats.remaining}</Text><Text style={styles.statLabel}>Remaining</Text></View>
-            <View style={styles.statCard}><Text style={[styles.statNumber, styles.bookmarkedStat]}>{stats.bookmarked}</Text><Text style={styles.statLabel}>Bookmarked</Text></View>
+          <Text style={[styles.sectionTitle, textStyle]}>Your Progress</Text>
+          <View style={[styles.statsGrid, itemStyle]}>
+            <View style={styles.statCard}><Text style={[styles.statNumber, textStyle]}>{stats.total}</Text><Text style={[styles.statLabel, subtitleStyle]}>Total Stories</Text></View>
+            <View style={styles.statCard}><Text style={[styles.statNumber, styles.completedStat]}>{stats.completed}</Text><Text style={[styles.statLabel, subtitleStyle]}>Completed</Text></View>
+            <View style={styles.statCard}><Text style={[styles.statNumber, styles.remainingStat]}>{stats.remaining}</Text><Text style={[styles.statLabel, subtitleStyle]}>Remaining</Text></View>
+            <View style={styles.statCard}><Text style={[styles.statNumber, styles.bookmarkedStat]}>{stats.bookmarked}</Text><Text style={[styles.statLabel, subtitleStyle]}>Bookmarked</Text></View>
           </View>
         </View>
 
         <View style={styles.filterContainer}>
-          <Text style={styles.sectionTitle}>Filter Stories</Text>
+          <Text style={[styles.sectionTitle, textStyle]}>Filter Stories</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollView}>
             <View style={styles.filterButtons}>
               {[{ key: 'all', label: 'All Stories', count: stats.total }, { key: 'new', label: 'New', count: stats.remaining }, { key: 'completed', label: 'Completed', count: stats.completed }, { key: 'bookmarked', label: 'Bookmarked', count: stats.bookmarked }].map((filter) => (
                 <TouchableOpacity
                   key={filter.key}
-                  style={[styles.filterButton, filterType === filter.key && styles.selectedFilterButton]}
+                  style={[styles.filterButton, itemStyle, filterType === filter.key && styles.selectedFilterButton]}
                   onPress={() => setFilterType(filter.key as any)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.filterButtonText, filterType === filter.key && styles.selectedFilterButtonText]}>{filter.label}</Text>
+                  <Text style={[styles.filterButtonText, subtitleStyle, filterType === filter.key && styles.selectedFilterButtonText]}>{filter.label}</Text>
                   {filter.count > 0 && (<View style={[styles.filterBadge, filterType === filter.key && styles.selectedFilterBadge]}><Text style={[styles.filterBadgeText, filterType === filter.key && styles.selectedFilterBadgeText]}>{filter.count}</Text></View>)}
                 </TouchableOpacity>
               ))}
             </View>
           </ScrollView>
         </View>
-
-        {/* This is the Story List UI that was missing */}
+        
         <View style={styles.storyListContainer}>
           {filteredStories.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateIcon}>📚</Text>
-              <Text style={styles.emptyStateTitle}>No stories found</Text>
+              <Text style={[styles.emptyStateTitle, subtitleStyle]}>No stories found</Text>
             </View>
           ) : (
             <View style={styles.storyGrid}>
@@ -173,7 +199,7 @@ export default function LibraryScreen() {
                 return (
                   <TouchableOpacity
                     key={story.id}
-                    style={[styles.storyCard, isCompleted && styles.completedStoryCard]}
+                    style={[styles.storyCard, itemStyle, isCompleted && styles.completedStoryCard]}
                     onPress={() => selectStory(story)}
                     activeOpacity={0.8}
                   >
@@ -194,10 +220,10 @@ export default function LibraryScreen() {
                       </TouchableOpacity>
                     </View>
                     <View style={styles.storyCardContent}>
-                      <Text style={[styles.storyTitle, isCompleted && styles.completedStoryTitle]}>
+                      <Text style={[styles.storyTitle, textStyle, isCompleted && styles.completedStoryTitle]}>
                         {story.title}
                       </Text>
-                      <Text style={styles.storyDescription}>
+                      <Text style={[styles.storyDescription, subtitleStyle]}>
                         {story.description}
                       </Text>
                     </View>
@@ -212,11 +238,9 @@ export default function LibraryScreen() {
   );
 }
 
-// This is the full styles object
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -230,19 +254,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#8E8E93',
     textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
     marginBottom: 16,
   },
   languageSelectorContainer: {
@@ -254,7 +275,6 @@ const styles = StyleSheet.create({
   },
   languageButton: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -262,7 +282,6 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selectedLanguageButton: {
-    backgroundColor: 'rgba(0, 122, 255, 0.15)',
     borderColor: '#007AFF',
   },
   languageFlag: {
@@ -272,11 +291,26 @@ const styles = StyleSheet.create({
   languageButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
   selectedLanguageButtonText: {
     color: '#007AFF',
+  },
+  difficultyButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  difficultyButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  selectedDifficultyButton: {
+    backgroundColor: '#007AFF',
+  },
+  difficultyButtonText: {
+    fontWeight: '600',
   },
   statsContainer: {
     marginBottom: 32,
@@ -284,18 +318,16 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     gap: 12,
+    borderRadius: 12,
+    padding: 16,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 16,
     alignItems: 'center',
   },
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
     marginBottom: 4,
   },
   completedStat: {
@@ -309,7 +341,6 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#8E8E93',
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -326,7 +357,6 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   },
   filterButton: {
-    backgroundColor: '#1C1C1E',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -343,7 +373,6 @@ const styles = StyleSheet.create({
   filterButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8E8E93',
   },
   selectedFilterButtonText: {
     color: '#FFFFFF',
@@ -362,7 +391,6 @@ const styles = StyleSheet.create({
   filterBadgeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#8E8E93',
   },
   selectedFilterBadgeText: {
     color: '#FFFFFF',
@@ -374,11 +402,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   storyCard: {
-    backgroundColor: '#1C1C1E',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: '#E5E5EA',
   },
   completedStoryCard: {
     backgroundColor: 'rgba(52, 199, 89, 0.1)',
@@ -422,14 +449,12 @@ const styles = StyleSheet.create({
   storyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   completedStoryTitle: {
     color: '#34C759',
   },
   storyDescription: {
     fontSize: 14,
-    color: '#8E8E93',
     lineHeight: 20,
   },
   emptyState: {
@@ -443,13 +468,6 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#8E8E93',
     marginBottom: 8,
-  },
-  emptyStateSubtitle: {
-    fontSize: 14,
-    color: '#636366',
-    textAlign: 'center',
-    lineHeight: 20,
   },
 });

@@ -1,33 +1,46 @@
 // app/_layout.tsx
-
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { ThemeProvider as NavigationThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+// Import our new ThemeProvider
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
+  // We need a component that can access the theme context
+  // to apply the correct theme from @react-navigation
+  function AppContent() {
+    const { theme } = useTheme();
+    // The ThemeProvider from @react-navigation is different from ours.
+    // We'll keep it for now as it provides default navigation colors.
+    const navigationTheme = theme === 'dark' ? DarkTheme : DefaultTheme;
+
+    return (
+      <NavigationThemeProvider value={navigationTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="story/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+      </NavigationThemeProvider>
+    );
+  }
+
+  // The main layout now wraps everything in OUR ThemeProvider
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        {/* This is the new line you are adding */}
-        <Stack.Screen name="story/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
+    <ThemeProvider>
+      <AppContent />
     </ThemeProvider>
   );
 }

@@ -1,147 +1,83 @@
 // app/story/[id].tsx
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { STORY_DATABASE } from '@/constants/stories';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '@/context/ThemeContext'; // 1. Import the theme hook
 
-// This is where we will map story IDs to their JSON content files
-// The 'require' statement bundles the JSON with your app
+import ru_en_romance_beg_001 from '@/assets/stories/ru_en_romance_beg_001.json';
+import ru_en_scifi_beg_002 from '@/assets/stories/ru_en_scifi_beg_002.json';
+
 const storyContentMap = {
-  'ru_en_romance_beg_001': require('../../assets/stories/ru_en_romance_beg_001.json'),
-  // When you add a new story JSON file, you'll add a new entry here
+  ru_en_romance_beg_001,
+  ru_en_scifi_beg_002,
 };
+// Helper function to find a story by its ID
+function findStoryById(id: string | undefined) {
+  if (!id) return undefined;
 
-const STORAGE_KEYS = {
-  TOTAL_POINTS: '@taika_total_points',
-  COMPLETED_STORIES: '@taika_completed_stories',
-};
-
-const findStoryById = (storyId: string | undefined) => {
-  if (!storyId) return null;
-
-  for (const langPair of Object.values(STORY_DATABASE)) {
-    for (const genre of Object.values(langPair)) {
-      for (const level of Object.values(genre)) {
-        // We removed the "(level as any[])" part here
-        const foundStory = level.find((story: { id: string }) => story.id === storyId);
-        if (foundStory) {
-          return foundStory as typeof foundStory & { points: number };
-        }
+  for (const lang of Object.values(STORY_DATABASE)) {
+    for (const category of Object.values(lang)) {
+      for (const difficulty of Object.values(category)) {
+        const story = difficulty.find((s: { id: string }) => s.id === id);
+        if (story) return story;
       }
     }
   }
-  return null;
-};
+  return undefined;
+}
 
 export default function StoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { theme } = useTheme(); // 2. Get the current theme
   const storyInfo = findStoryById(id);
   const storyContent = id ? storyContentMap[id as keyof typeof storyContentMap] : null;
-
-  const handleCompleteStory = async () => {
-    // ... (This function remains the same as before)
-  };
+  // 3. Create dynamic styles based on the theme
+  const containerStyle = { flex: 1, backgroundColor: theme === 'dark' ? '#000000' : '#FFFFFF' };
+  const textStyle = { color: theme === 'dark' ? '#FFFFFF' : '#000000' };
+  const descriptionStyle = { color: theme === 'dark' ? '#8E8E93' : '#6E6E73' };
+  const pairStyle = { backgroundColor: theme === 'dark' ? '#1C1C1E' : '#F2F2F7' };
+  const knownTextStyle = { color: theme === 'dark' ? '#8E8E93' : '#6E6E73' };
 
   if (!storyInfo || !storyContent) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Stack.Screen options={{ title: 'Not Found' }} />
-        <View style={styles.centered}><Text style={styles.errorText}>Story not found.</Text></View>
-      </SafeAreaView>
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>Story not found.</Text>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={containerStyle}>
       <Stack.Screen options={{ title: storyInfo.title, headerBackTitle: 'Library' }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>{storyInfo.title}</Text>
-          <Text style={styles.description}>{storyInfo.description}</Text>
+          <Text style={[styles.title, textStyle]}>{storyInfo.title}</Text>
+          <Text style={[styles.description, descriptionStyle]}>{storyInfo.description}</Text>
         </View>
 
         <View style={styles.storyContent}>
           {storyContent.content.map((pair: { target: string; known: string }, index: number) => (
-            <View key={index} style={styles.paragraphPair}>
-              <Text style={styles.targetLanguageText}>{pair.target}</Text>
-              <Text style={styles.knownLanguageText}>{pair.known}</Text>
+            <View key={index} style={[styles.paragraphPair, pairStyle]}>
+              <Text style={[styles.targetLanguageText, textStyle]}>{pair.target}</Text>
+              <Text style={[styles.knownLanguageText, knownTextStyle]}>{pair.known}</Text>
             </View>
           ))}
         </View>
-
-        <TouchableOpacity style={styles.completeButton} onPress={handleCompleteStory} activeOpacity={0.8}>
-          <Text style={styles.completeButtonText}>Mark as Complete</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+// 4. Update the StyleSheet to remove hardcoded colors
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 50,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-  },
-  header: {
-    marginBottom: 24,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 16,
-    color: '#8E8E93',
-    lineHeight: 22,
-  },
-  storyContent: {
-    marginTop: 16,
-  },
-  paragraphPair: {
-    marginBottom: 24,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 12,
-    padding: 16,
-  },
-  targetLanguageText: {
-    fontSize: 18,
-    color: '#FFFFFF',
-    lineHeight: 26,
-    marginBottom: 12,
-  },
-  knownLanguageText: {
-    fontSize: 15,
-    color: '#8E8E93',
-    lineHeight: 22,
-    fontStyle: 'italic',
-  },
-  completeButton: {
-    backgroundColor: '#34C759', // A nice green color
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  completeButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
+  scrollContent: { padding: 20, paddingBottom: 50 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: { fontSize: 18 },
+  header: { marginBottom: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#E5E5EA' },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 8 },
+  description: { fontSize: 16, lineHeight: 22 },
+  storyContent: { marginTop: 16 },
+  paragraphPair: { marginBottom: 24, borderRadius: 12, padding: 16 },
+  targetLanguageText: { fontSize: 18, lineHeight: 26, marginBottom: 12 },
+  knownLanguageText: { fontSize: 15, lineHeight: 22, fontStyle: 'italic' },
 });
